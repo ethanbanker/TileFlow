@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # TileFlow
 A modern Dashboard
 =======
