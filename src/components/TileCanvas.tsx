@@ -26,8 +26,8 @@ export default function TileCanvas({ tiles, tileRegistry }: TileCanvasProps) {
   return (
     <div className="flex flex-col w-full h-full">
       {/* Top bar section */}
-      <div className="w-full h-16 bg-zinc-900 border-b border-zinc-700 flex items-center px-4">
-        <span className="text-white text-sm">Top Bar Widget Area</span>
+      <div className="w-full h-32 bg-zinc-900 border-b border-zinc-700 flex items-center px-4">
+        <span className="text-white text-sm">Widget Bar</span>
       </div>
 
       {/* Main grid */}
