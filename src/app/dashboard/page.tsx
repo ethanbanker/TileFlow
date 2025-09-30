@@ -2,26 +2,32 @@
 
 import React, { useState } from 'react';
 import TileCanvas from '../../components/TileCanvas';
-import { tileRegistry } from '../../components/TileRegistry';
+import { tileRegistry } from '../../components/tileRegistry';
 
 const initialTiles = [
+  { id: '1', type: 'ClockTile', position: { x: 0, y: 0 }, size: { w: 2, h: 2 } },
+  { id: '2', type: 'WeatherTile', position: { x: 2, y: 0 }, size: { w: 2, h: 2 } },
+  { id: '3', type: 'NewsTile', position: { x: 4, y: 0 }, size: { w: 2, h: 2 } },
   {
-    id: '1',
-    type: 'clock',
-    position: { x: 0, y: 0 },
-    size: { w: 2, h: 2 },
-  },
-  {
-    id: '2',
-    type: 'weather',
-    position: { x: 2, y: 0 },
-    size: { w: 3, h: 2 },
-  },
-  {
-    id: '3',
-    type: 'news',
+    id: '4',
+    type: 'HttpTile',
     position: { x: 0, y: 2 },
-    size: { w: 5, h: 3 },
+    size: { w: 2, h: 2 },
+    config: { title: 'My API', url: 'https://example.com' },
+  },
+  {
+    id: '5',
+    type: 'PingTile',
+    position: { x: 2, y: 2 },
+    size: { w: 2, h: 2 },
+    config: { title: 'Ping Test', url: 'https://example.com' },
+  },
+  {
+    id: '6',
+    type: 'LinkTile',
+    position: { x: 4, y: 2 },
+    size: { w: 2, h: 2 },
+    config: { title: 'My Link', url: 'https://example.com' },
   },
 ];
 
