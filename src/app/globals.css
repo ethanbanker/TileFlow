@@ -1,3 +1,4 @@
+@import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,7 +9,7 @@
 }
 
 html, body {
-  @apply bg-neutral-900 text-neutral-100 antialiased;
+  @apply bg-zinc-900 text-neutral-100 antialiased;
 }
 
 /* Subtle background grid + radial glow */
@@ -27,7 +28,7 @@ body::before {
 
 /* Glassy card helper (used by tiles) */
 .glass-card {
-  @apply bg-neutral-900/60 supports-[backdrop-filter]:backdrop-blur-md ring-1 ring-white/10 ring-inset shadow-elevate rounded-2xl;
+  @apply bg-zinc-900 backdrop-blur-md ring-1 ring-white/10 ring-inset shadow-lg rounded-2xl;
 }
 
 /* Hover/focus elevation */
@@ -35,10 +36,10 @@ body::before {
   @apply transition-all duration-200 ease-out;
 }
 .glass-interactive:hover {
-  @apply ring-white/20 shadow-elevate-lg -translate-y-0.5;
+  @apply ring-white/20 shadow-xl -translate-y-0.5;
 }
 .glass-interactive:focus-visible {
-  @apply outline-none ring-2 ring-brand-400/60;
+  @apply outline-none ring-2 ring-blue-500/60;
 }
 
 /* Skeleton shimmer */
@@ -50,3 +51,4 @@ body::before {
   @apply absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent;
   animation: shimmer 1.6s infinite;
 }
+

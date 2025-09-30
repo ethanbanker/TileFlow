@@ -1,4 +1,4 @@
-import "./globals.css";
+import "../app/globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,9 +9,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-neutral-900 text-white antialiased">
+      <body className="min-h-screen bg-zinc-900 text-white antialiased">
         {children}
       </body>
     </html>
   );
 }
+
