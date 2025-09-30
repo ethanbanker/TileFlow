@@ -1,26 +1,52 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Dark baseline + crisp rendering */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body {
+  @apply bg-neutral-900 text-neutral-100 antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Subtle background grid + radial glow */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1000px 600px at 10% -10%, rgba(37,99,235,0.12), transparent 40%),
+    radial-gradient(800px 500px at 90% 120%, rgba(147,197,253,0.10), transparent 50%),
+    linear-gradient(to bottom right, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  mask-image: radial-gradient(70% 70% at 50% 30%, black, transparent 70%);
+  z-index: 0;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Glassy card helper (used by tiles) */
+.glass-card {
+  @apply bg-neutral-900/60 supports-[backdrop-filter]:backdrop-blur-md ring-1 ring-white/10 ring-inset shadow-elevate rounded-2xl;
+}
+
+/* Hover/focus elevation */
+.glass-interactive {
+  @apply transition-all duration-200 ease-out;
+}
+.glass-interactive:hover {
+  @apply ring-white/20 shadow-elevate-lg -translate-y-0.5;
+}
+.glass-interactive:focus-visible {
+  @apply outline-none ring-2 ring-brand-400/60;
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  @apply relative overflow-hidden bg-neutral-800/60 rounded-lg;
+}
+.skeleton::after {
+  content: "";
+  @apply absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  animation: shimmer 1.6s infinite;
 }
