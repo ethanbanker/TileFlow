@@ -1,12 +1,15 @@
-import React from 'react';
+import Tile from '@/components/ui/Tile';
 
 export default function WeatherTile() {
   return (
-    <div className="flex items-center justify-center h-full bg-zinc-800 text-white rounded-xl p-4 shadow-lg">
-      <div className="text-center">
-        <div className="text-2xl font-bold">🌤️ Weather</div>
-        <div className="text-sm text-neutral-300">Upland, CA — 72°F</div>
-      </div>
-    </div>
+    <Tile
+      title="Weather"
+      subtitle="Forecast"
+      status="ok"
+      statusText="72°F • Sunny"
+      footer={<div className="text-neutral-300">Upland, CA</div>}
+    >
+      {/* Additional weather details can go here */}
+    </Tile>
   );
 }

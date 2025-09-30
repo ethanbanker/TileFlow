@@ -29,7 +29,7 @@ export default function TileCanvas({ tiles, tileRegistry }: TileCanvasProps) {
         return (
           <div
             key={tile.id}
-            className={`col-span-${tile.size.w} row-span-${tile.size.h} border border-white`}
+            className={`col-span-${tile.size.w} row-span-${tile.size.h} `}
             style={{
               gridColumnStart: tile.position.x + 1,
               gridRowStart: tile.position.y + 1,

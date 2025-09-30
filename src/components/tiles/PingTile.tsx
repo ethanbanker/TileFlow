@@ -1,24 +1,50 @@
-"use client";
-import useSWR from "swr";
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+'use client';
 
-export default function PingTile({ title, target }: { title: string; target: string }) {
-  const { data, error, isLoading } = useSWR(`/api/status?ping=${encodeURIComponent(target)}`, fetcher, { refreshInterval: 30000 });
+import useSWR from 'swr';
+import Tile from '@/components/ui/Tile';
 
-  let status = "Checking…", color = "text-neutral-300";
-  if (error) { status = "Error"; color = "text-red-400"; }
-  else if (!isLoading && data) {
-    if (data.ok === true) { status = "Online"; color = "text-green-400"; }
-    else if (data.ok === false) { status = "Offline"; color = "text-red-400"; }
-    else { status = "Unknown"; color = "text-yellow-400"; }
-  }
+type Props = { title: string; url: string };
+
+const fetcher = (input: string) => fetch(input).then(r => r.json());
+
+function toStatus(d: any, err: any): {
+  status: 'ok'|'warn'|'error'|'loading'|'idle',
+  statusText: string,
+  ms?: number
+} {
+  if (err) return { status: 'error', statusText: 'Error' };
+  if (!d) return { status: 'loading', statusText: 'Checking...' };
+  if (d.ok) return { status: 'ok', statusText: `${d.status} ${d.statusText}`, ms: d.ms };
+  if (d.status >= 500 || d.status === 0) return { status: 'error', statusText: `${d.status} ${d.statusText}` };
+  return { status: 'warn', statusText: `${d.status} ${d.statusText}` };
+}
+
+export default function PingTile({ title, url }: Props) {
+  const { data, error, isLoading, isValidating } = useSWR(
+    `/api/ping-check?url=${encodeURIComponent(url)}`,
+    fetcher,
+    { refreshInterval: 30_000, revalidateOnFocus: false }
+  );
+
+  const { status, statusText, ms } = toStatus(isLoading ? null : data, error);
+  const shownUrl = data?.finalUrl ?? url;
 
   return (
-    <div className="rounded-lg p-4 bg-neutral-800">
-      <div className="text-sm uppercase tracking-wide text-neutral-400">Ping</div>
-      <div className="mt-1 text-lg font-semibold">{title}</div>
-      <div className={`mt-2 text-sm ${color}`}>{status}</div>
-      <div className="mt-1 text-xs text-neutral-400 break-all">{target}</div>
-    </div>
+    <Tile
+      title={title}
+      subtitle="Ping"
+      status={status}
+      statusText={statusText + (isValidating ? ' • Refreshing' : '')}
+      footer={
+        <div className="flex items-center justify-between">
+          <span className="truncate">{shownUrl}</span>
+          {typeof ms === 'number' && (
+            <span className="text-neutral-300">{ms} ms</span>
+          )}
+        </div>
+      }
+    >
+      {/* Body can hold extra details; keep clean by default */}
+    </Tile>
   );
 }
