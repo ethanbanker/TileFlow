@@ -1,51 +1,99 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
+import React, { useState, useEffect } from 'react';
+import { BaseTileProps } from '../../types/tile';
 import Tile from '@/components/ui/Tile';
 
-type Props = { title: string; url: string };
-
-const fetcher = (input: string) => fetch(input).then(r => r.json());
-
-function toStatus(d: any, err: any): {
-  status: 'ok'|'warn'|'error'|'loading'|'idle',
-  statusText: string,
-  ms?: number
-} {
-  if (err) return { status: 'error', statusText: 'Error' };
-  if (!d) return { status: 'loading', statusText: 'Checking...' };
-  if (d.ok) return { status: 'ok', statusText: `${d.status} ${d.statusText}`, ms: d.ms };
-  // 5xx or hard failures => error; 3xx/4xx => warn
-  if (d.status >= 500 || d.status === 0) return { status: 'error', statusText: `${d.status} ${d.statusText}` };
-  return { status: 'warn', statusText: `${d.status} ${d.statusText}` };
+interface HttpConfig {
+  url: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  interval?: number;
 }
 
-export default function HttpTile({ title, url }: Props) {
-  const { data, error, isLoading, isValidating } = useSWR(
-    `/api/http-check?url=${encodeURIComponent(url)}`,
-    fetcher,
-    { refreshInterval: 30_000, revalidateOnFocus: false }
-  );
+const HttpTile: React.FC<BaseTileProps & { config: HttpConfig }> = ({ size, config = {} }) => {
+  const [status, setStatus] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
-  const { status, statusText, ms } = toStatus(isLoading ? null : data, error);
-  const shownUrl = data?.finalUrl ?? url;
+  useEffect(() => {
+    if (!config?.url || !config?.method) {
+      return;
+    }
 
-  return (
-    <Tile
-      title={title}
-      subtitle="HTTP"
-      status={status}
-      statusText={statusText + (isValidating ? ' • Refreshing' : '')}
-      footer={
-        <div className="flex items-center justify-between">
-          <span className="truncate">{shownUrl}</span>
-          {typeof ms === 'number' && (
-            <span className="text-neutral-300">{ms} ms</span>
-          )}
-        </div>
+    const checkStatus = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(config.url, { method: config.method });
+        setStatus(response.status);
+      } catch {
+        setStatus(null);
       }
-    >
-      {/* Body can hold extra details; keep clean by default */}
-    </Tile>
-  );
-}
+      setLoading(false);
+      setLastChecked(new Date());
+    };
+
+    checkStatus();
+    const intervalTime = config?.interval || 60000;
+    const interval = setInterval(checkStatus, intervalTime);
+    
+    return () => clearInterval(interval);
+  }, [config]);
+
+  const renderContent = () => {
+    switch (size) {
+      case 'small':
+        return (
+          <div className={`text-2xl ${status === 200 ? 'text-green-500' : 'text-red-500'}`}>
+            {status || '❌'}
+          </div>
+        );
+      
+      case 'medium':
+        return (
+          <div className="flex flex-col items-center gap-2">
+            <div className={`text-3xl ${status === 200 ? 'text-green-500' : 'text-red-500'}`}>
+              {status || '❌'}
+            </div>
+            <div className="text-sm text-zinc-400">{config?.method || 'N/A'}</div>
+          </div>
+        );
+      
+      case 'large':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xl font-medium">HTTP Status</span>
+              <span className={`text-3xl ${status === 200 ? 'text-green-500' : 'text-red-500'}`}>
+                {status || '❌'}
+              </span>
+            </div>
+            <div className="flex flex-col gap-2 text-sm text-zinc-400">
+              <div className="flex justify-between">
+                <span>Method</span>
+                <span>{config?.method || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>URL</span>
+                <span className="truncate ml-2">{config?.url || 'N/A'}</span>
+              </div>
+              {lastChecked && (
+                <div className="flex justify-between">
+                  <span>Last Checked</span>
+                  <span>{lastChecked.toLocaleTimeString()}</span>
+                </div>
+              )}
+            </div>
+            {loading && (
+              <div className="text-sm text-zinc-500 animate-pulse">
+                Checking...
+              </div>
+            )}
+          </div>
+        );
+    }
+  };
+
+  return <Tile>{renderContent()}</Tile>;
+};
+
+export default HttpTile;

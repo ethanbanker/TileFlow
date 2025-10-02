@@ -1,48 +1,51 @@
-'use client';
-
+import React from 'react';
+import { BaseTileProps } from '../../types/tile';
 import Tile from '@/components/ui/Tile';
 
-type Props = {
+interface LinkConfig {
+  url: string;
   title: string;
-  href: string;
-  note?: string;
-};
-
-function faviconFor(href: string) {
-  try {
-    const u = new URL(href);
-    return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`;
-  } catch {
-    return undefined;
-  }
+  description?: string;
 }
 
-export default function LinkTile({ title, href, note }: Props) {
-  const iconUrl = faviconFor(href);
+const LinkTile: React.FC<BaseTileProps & { config: LinkConfig }> = ({ size, config = {} }) => {
+  const renderContent = () => {
+    switch (size) {
+      case 'small':
+        return (
+          <a href={config?.url || '#'} target="_blank" rel="noopener noreferrer" 
+             className="flex items-center justify-center">
+            <span className="text-xl">🔗</span>
+          </a>
+        );
+      
+      case 'medium':
+        return (
+          <a href={config?.url || '#'} target="_blank" rel="noopener noreferrer" 
+             className="flex flex-col items-center gap-2">
+            <span className="text-2xl">🔗</span>
+            <span className="text-sm font-medium truncate">{config?.title || 'No Title'}</span>
+          </a>
+        );
+      
+      case 'large':
+        return (
+          <a href={config?.url || '#'} target="_blank" rel="noopener noreferrer" 
+             className="flex flex-col gap-4 p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🔗</span>
+              <span className="text-xl font-medium">{config?.title || 'No Title'}</span>
+            </div>
+            {config?.description && (
+              <p className="text-sm text-zinc-400">{config.description}</p>
+            )}
+            <div className="text-xs text-zinc-500 truncate">{config?.url || 'No URL'}</div>
+          </a>
+        );
+    }
+  };
 
-  const icon = (
-    <div className="size-9 rounded-xl bg-neutral-800/70 ring-1 ring-white/10 overflow-hidden flex items-center justify-center">
-      {iconUrl ? (
-        // Favicon fetch is just an <img>; safe in browser.
-        <img src={iconUrl} alt="" className="size-5" />
-      ) : (
-        <svg viewBox="0 0 24 24" width="18" height="18" className="text-neutral-300">
-          <path fill="currentColor" d="M3.9,12a5,5,0,0,1,5-5h3v2H8.9a3,3,0,0,0,0,6h3v2h-3A5,5,0,0,1,3.9,12Zm6.2,1h3v-2h-3Zm4-6h3a5,5,0,0,1,0,10h-3V15h3a3,3,0,0,0,0-6h-3Z"/>
-        </svg>
-      )}
-    </div>
-  );
+  return <Tile>{renderContent()}</Tile>;
+};
 
-  return (
-    <Tile
-      title={title}
-      subtitle="Link"
-      icon={icon}
-      status="idle"
-      statusText="Ready"
-      href={href}
-      footer={<span className="truncate">{href}</span>}
-    >
-      {note && <span className="text-neutral-400">{note}</span>}
-    </Tile>
-  );
+export default LinkTile;

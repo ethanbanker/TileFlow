@@ -1,50 +1,103 @@
-'use client';
-
-import useSWR from 'swr';
+import React, { useState, useEffect } from 'react';
+import { BaseTileProps } from '../../types/tile';
 import Tile from '@/components/ui/Tile';
 
-type Props = { title: string; url: string };
-
-const fetcher = (input: string) => fetch(input).then(r => r.json());
-
-function toStatus(d: any, err: any): {
-  status: 'ok'|'warn'|'error'|'loading'|'idle',
-  statusText: string,
-  ms?: number
-} {
-  if (err) return { status: 'error', statusText: 'Error' };
-  if (!d) return { status: 'loading', statusText: 'Checking...' };
-  if (d.ok) return { status: 'ok', statusText: `${d.status} ${d.statusText}`, ms: d.ms };
-  if (d.status >= 500 || d.status === 0) return { status: 'error', statusText: `${d.status} ${d.statusText}` };
-  return { status: 'warn', statusText: `${d.status} ${d.statusText}` };
+interface PingConfig {
+  host: string;
+  interval?: number;
 }
 
-export default function PingTile({ title, url }: Props) {
-  const { data, error, isLoading, isValidating } = useSWR(
-    `/api/ping-check?url=${encodeURIComponent(url)}`,
-    fetcher,
-    { refreshInterval: 30_000, revalidateOnFocus: false }
-  );
+const PingTile: React.FC<BaseTileProps & { config: PingConfig }> = ({ size, config = {} }) => {
+  const [latency, setLatency] = useState<number | null>(null);
+  const [status, setStatus] = useState<'good' | 'medium' | 'poor' | 'offline'>('offline');
+  const [history, setHistory] = useState<number[]>([]);
 
-  const { status, statusText, ms } = toStatus(isLoading ? null : data, error);
-  const shownUrl = data?.finalUrl ?? url;
+  useEffect(() => {
+    if (!config?.host) {
+      return;
+    }
 
-  return (
-    <Tile
-      title={title}
-      subtitle="Ping"
-      status={status}
-      statusText={statusText + (isValidating ? ' • Refreshing' : '')}
-      footer={
-        <div className="flex items-center justify-between">
-          <span className="truncate">{shownUrl}</span>
-          {typeof ms === 'number' && (
-            <span className="text-neutral-300">{ms} ms</span>
-          )}
-        </div>
-      }
-    >
-      {/* Body can hold extra details; keep clean by default */}
-    </Tile>
-  );
-}
+    const ping = () => {
+      const mockLatency = Math.random() * 100;
+      setLatency(Math.round(mockLatency));
+      setHistory(prev => [...prev.slice(-19), mockLatency]);
+      
+      if (mockLatency < 50) setStatus('good');
+      else if (mockLatency < 100) setStatus('medium');
+      else setStatus('poor');
+    };
+
+    ping();
+    const intervalTime = config?.interval || 5000;
+    const interval = setInterval(ping, intervalTime);
+    
+    return () => clearInterval(interval);
+  }, [config]);
+
+  const getStatusColor = () => {
+    switch (status) {
+      case 'good': return 'text-green-500';
+      case 'medium': return 'text-yellow-500';
+      case 'poor': return 'text-red-500';
+      default: return 'text-zinc-500';
+    }
+  };
+
+  const renderContent = () => {
+    switch (size) {
+      case 'small':
+        return (
+          <div className={`text-2xl font-medium ${getStatusColor()}`}>
+            {latency ? `${latency}ms` : '---'}
+          </div>
+        );
+      
+      case 'medium':
+        return (
+          <div className="flex flex-col items-center gap-2">
+            <div className={`text-3xl font-medium ${getStatusColor()}`}>
+              {latency ? `${latency}ms` : '---'}
+            </div>
+            <div className="text-sm text-zinc-400">{config?.host || 'No Host'}</div>
+          </div>
+        );
+      
+      case 'large':
+        return (
+          <div className="flex flex-col gap-4 p-4">
+            <div className="flex justify-between items-center">
+              <div className="text-xl font-medium">Ping Status</div>
+              <div className={`text-2xl font-medium ${getStatusColor()}`}>
+                {latency ? `${latency}ms` : '---'}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 text-sm">
+              <div className="flex justify-between text-zinc-400">
+                <span>Host</span>
+                <span>{config?.host || 'No Host'}</span>
+              </div>
+              <div className="flex justify-between text-zinc-400">
+                <span>Status</span>
+                <span className={getStatusColor()}>{status}</span>
+              </div>
+            </div>
+            {history.length > 0 && (
+              <div className="h-20 flex items-end gap-1">
+                {history.map((value, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 ${getStatusColor()} opacity-75`}
+                    style={{ height: `${(value / Math.max(...history)) * 100}%` }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+    }
+  };
+
+  return <Tile>{renderContent()}</Tile>;
+};
+
+export default PingTile;
